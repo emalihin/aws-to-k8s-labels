@@ -1,3 +1,32 @@
+---
+apiVersion: rbac.authorization.k8s.io/v1beta1
+kind: ClusterRole
+metadata:
+  name: aws-to-k8s-labels
+rules:
+  - apiGroups: ["*"]
+    resources: ["nodes"]
+    verbs: ["get", "list", "patch"]
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: aws-to-k8s-labels
+  namespace: kube-system
+---
+apiVersion: rbac.authorization.k8s.io/v1beta1
+kind: ClusterRoleBinding
+metadata:
+  name: aws-to-k8s-labels
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: aws-to-k8s-labels
+subjects:
+- kind: ServiceAccount
+  name: aws-to-k8s-labels
+  namespace: kube-system
+---
 apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
@@ -9,19 +38,13 @@ spec:
     metadata:
       labels:
         app: aws-to-k8s-labels
-      annotations:
-        scheduler.alpha.kubernetes.io/tolerations: |
-          [
-            {
-              "key": "dedicated",
-              "operator": "Equal",
-              "value": "master",
-              "effect": "NoSchedule"
-            }
-          ]
     spec:
       nodeSelector:
         kubernetes.io/role: master
+      tolerations:
+      - effect: NoSchedule
+        key: node-role.kubernetes.io/master
+      serviceAccountName: aws-to-k8s-labels
       containers:
       - name: aws-to-k8s-labels
         image: onfido/aws-to-k8s-labels:latest
