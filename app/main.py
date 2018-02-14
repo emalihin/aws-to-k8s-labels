@@ -27,6 +27,7 @@ def get_nodes():
 
 def tag_nodes():
     for node in get_nodes():
+        time.sleep(0.5)
         labels = {}
         autoscaling_group = ''
         tags_ec2 = ec2.describe_instances(
@@ -67,7 +68,6 @@ def tag_nodes():
                              verify=False)
 
 while True:
-    time.sleep(60)
     try:
         tag_nodes()
     except Exception as e:
